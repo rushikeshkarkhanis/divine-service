@@ -4,6 +4,7 @@ import com.tk.order.entity.Order;
 import com.tk.order.entity.OrderStatus;
 import com.tk.order.model.CancelOrder;
 import com.tk.order.repo.OrderRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,17 @@ import java.util.Map;
 @Service
 public class OrderService {
 
+    private final String userUrl;
+    private final String productUrl;
+
     private final OrderRepo orderRepo;
     private final RestTemplate restTemplate;
 
-    public OrderService(OrderRepo orderRepo, RestTemplate restTemplate) {
+    public OrderService(@Value("${api.user.get-by-name}") String userUrl,
+                        @Value("${api.product.update-order}") String productUrl,
+                        OrderRepo orderRepo, RestTemplate restTemplate) {
+        this.userUrl = userUrl;
+        this.productUrl = productUrl;
         this.orderRepo = orderRepo;
         this.restTemplate = restTemplate;
     }
@@ -28,8 +36,6 @@ public class OrderService {
     }
 
     public Order createOrder(Order order) {
-        String userUrl = "http://localhost:9091/api/v1/get-user-by-name/{userName}";
-        String orderUrl = "http://localhost:9092/api/v1/order-product/{name}/{qty}";
 
         Map<String, Object> params = new HashMap<>();
         params.put("name", order.getProductName());
@@ -42,7 +48,7 @@ public class OrderService {
                     order.getUserName()
             );
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                restTemplate.put(orderUrl, null, params);
+                restTemplate.put(productUrl, null, params);
                 System.out.println("Product order updated successfully!");
             } else {
                 return null;
@@ -55,8 +61,6 @@ public class OrderService {
     }
 
     public Order cancelOrder(CancelOrder order) {
-        String orderUrl = "http://localhost:9092/api/v1/cancel-product/{name}/{qty}";
-
         Map<String, Object> params = new HashMap<>();
         params.put("name", order.getProductName());
         params.put("qty", order.getProductQuantity());
@@ -66,8 +70,7 @@ public class OrderService {
         o.setUserName(order.getUserName());
         o.setOrderStatus(OrderStatus.CANCELLED);
         try {
-            restTemplate.put(orderUrl, null, params);
-
+            restTemplate.put(productUrl, null, params);
             System.out.println("Product order updated successfully!");
         } catch (Exception ex) {
             System.err.println("Error calling Product Service: " + ex.getMessage());
