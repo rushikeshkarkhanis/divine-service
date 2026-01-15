@@ -2,6 +2,7 @@ package com.tk.order.service;
 
 import com.tk.order.entity.Order;
 import com.tk.order.entity.OrderStatus;
+import com.tk.order.model.CancelOrder;
 import com.tk.order.repo.OrderRepo;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,23 +54,25 @@ public class OrderService {
         return orderRepo.save(order);
     }
 
-    public Order cancelOrder(String productName, Long quantity) {
+    public Order cancelOrder(CancelOrder order) {
         String orderUrl = "http://localhost:9092/api/v1/cancel-product/{name}/{qty}";
 
         Map<String, Object> params = new HashMap<>();
-        params.put("name", productName);
-        params.put("qty", quantity);
-
-        Order order = orderRepo.findByProductName(productName);
+        params.put("name", order.getProductName());
+        params.put("qty", order.getProductQuantity());
+        Order o = new Order();
+        o.setProductName(order.getProductName());
+        o.setProductQuantity(order.getProductQuantity());
+        o.setUserName(order.getUserName());
+        o.setOrderStatus(OrderStatus.CANCELLED);
         try {
             restTemplate.put(orderUrl, null, params);
-            order.setOrderStatus(OrderStatus.CANCELLED);
+
             System.out.println("Product order updated successfully!");
         } catch (Exception ex) {
             System.err.println("Error calling Product Service: " + ex.getMessage());
         }
-
         System.out.println("Order Cancelled successfully in order table!");
-        return orderRepo.save(order);
+        return orderRepo.save(o);
     }
 }

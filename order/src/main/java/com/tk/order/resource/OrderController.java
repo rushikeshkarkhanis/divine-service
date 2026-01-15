@@ -1,6 +1,7 @@
 package com.tk.order.resource;
 
 import com.tk.order.entity.Order;
+import com.tk.order.model.CancelOrder;
 import com.tk.order.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +27,9 @@ public class OrderController {
         return orderService.getAllOrders(userName);
     }
 
-    @PutMapping("/cancel-order/{productName}/{quantity}")
-    public Order cancelOrder(@PathVariable String productName, @PathVariable Long quantity) {
-        return orderService.cancelOrder(productName, quantity);
+    @PutMapping("/cancel-order")
+    public Order cancelOrder(@RequestBody CancelOrder order) {
+        return orderService.cancelOrder(order);
     }
 
 }
